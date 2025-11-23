@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import Card from '../../../components/Card';
 import useAppStore from '../../../store/useAppStore';
 import gsap from 'gsap';
+import profileImg from "../../../assets/profile.png"; 
+
 
 const Checklist = () => {
   const { patients, isolationChecklists, updateChecklist } = useAppStore();
@@ -83,11 +85,12 @@ const Checklist = () => {
               }`}
             >
               <div className="flex items-center gap-3">
-                <img
-                  src={`https://source.unsplash.com/80x80/?portrait,${patient.id}`}
-                  alt={patient.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+              <img
+                src={profileImg}
+                alt={patient.name}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+
                 <div>
                   <p className="font-semibold text-dark-text">{patient.name}</p>
                   <p className="text-xs text-gray-600">{patient.id} • Room {patient.room}</p>

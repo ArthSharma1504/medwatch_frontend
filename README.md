@@ -2,7 +2,8 @@
 
 A comprehensive **frontend-only React application** for tracking and managing Multi-Drug Resistant (MDR) infection contacts in hospitals. Built with modern technologies for real-time visualization and contact tracing.
 
-![Hospital MDR System](https://source.unsplash.com/1200x400/?hospital,technology)
+![Hospital MDR System](https://images.unsplash.com/photo-1581092160562-0407be19c2c5?w=1200&h=400&fit=crop)
+
 
 ## 🚀 Features
 
