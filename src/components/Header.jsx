@@ -2,12 +2,16 @@ import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import useAppStore from '../store/useAppStore';
+import useAuthStore from '../store/useAuthStore';
+import LogoutButton from './LogoutButton';
 
 const Header = ({ title }) => {
   const location = useLocation();
-  const alerts = useAppStore((state) => state.alerts);
+  const alerts = useAppStore((state) => state.alerts || []);
   const unreadCount = alerts.filter((a) => !a.read).length;
   const headerRef = useRef(null);
+
+  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     if (headerRef.current) {
@@ -28,6 +32,7 @@ const Header = ({ title }) => {
       className="bg-primary-teal text-white shadow-lg sticky top-0 z-50"
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        {/* LEFT: Logo */}
         <div className="flex items-center gap-4">
           <i className="ri-hospital-line text-4xl"></i>
           <div>
@@ -36,7 +41,9 @@ const Header = ({ title }) => {
           </div>
         </div>
 
+        {/* RIGHT SIDE */}
         <nav className="flex items-center gap-6">
+          {/* Doctor */}
           <Link
             to="/doctor"
             className={`px-4 py-2 rounded-lg font-semibold transition-all hover:bg-white hover:text-primary-teal ${
@@ -46,6 +53,8 @@ const Header = ({ title }) => {
             <i className="ri-stethoscope-line mr-2"></i>
             Doctor Dashboard
           </Link>
+
+          {/* Admin */}
           <Link
             to="/admin"
             className={`px-4 py-2 rounded-lg font-semibold transition-all hover:bg-white hover:text-primary-teal ${
@@ -56,6 +65,7 @@ const Header = ({ title }) => {
             Admin Panel
           </Link>
 
+          {/* Notifications */}
           <button className="relative p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition">
             <i className="ri-notification-3-line text-2xl"></i>
             {unreadCount > 0 && (
@@ -64,6 +74,25 @@ const Header = ({ title }) => {
               </span>
             )}
           </button>
+
+          {/* LOGIN / LOGOUT SECTION */}
+          {!user ? (
+            /* NOT LOGGED IN → Show Login link */
+            <Link
+              to="/login"
+              className="px-4 py-2 bg-white text-primary-teal font-semibold rounded-lg hover:bg-opacity-80"
+            >
+              Login
+            </Link>
+          ) : (
+            /* LOGGED IN → Show User + Logout */
+            <div className="flex items-center gap-3">
+              <span className="font-medium text-white/90">
+                Hi, <span className="font-bold">{user.name || user.username}</span>
+              </span>
+              <LogoutButton className="px-4 py-2 bg-white text-primary-teal font-semibold rounded-lg hover:bg-opacity-80" />
+            </div>
+          )}
         </nav>
       </div>
     </header>

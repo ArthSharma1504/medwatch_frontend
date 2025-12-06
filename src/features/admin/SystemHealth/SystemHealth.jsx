@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import Card from '../../../components/Card';
-import useAppStore from '../../../store/useAppStore';
 import gsap from 'gsap';
 
 const SystemHealth = () => {
-  const { systemHealth } = useAppStore();
   const containerRef = useRef(null);
+
+  // Static system health data
+  const systemHealth = {
+    lastSync: new Date(),
+  };
 
   const [integrations, setIntegrations] = useState([
     { name: 'EMR System', status: 'Connected', icon: 'ri-hospital-line', color: 'green' },
@@ -111,7 +114,7 @@ const SystemHealth = () => {
           <div className="flex items-center justify-between p-4 bg-light-teal rounded-lg">
             <div>
               <p className="font-medium text-dark-text">Last EMR Sync</p>
-              <p className="text-sm text-gray-600">{new Date(systemHealth.lastSync).toLocaleString()}</p>
+              <p className="text-sm text-gray-600">{systemHealth.lastSync.toLocaleString()}</p>
             </div>
             <button className="bg-primary-teal text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition">
               <i className="ri-refresh-line mr-2"></i>

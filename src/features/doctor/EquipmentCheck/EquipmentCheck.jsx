@@ -1,15 +1,54 @@
 import { useState, useEffect, useRef } from 'react';
 import Card from '../../../components/Card';
 import Modal from '../../../components/Modal';
-import useAppStore from '../../../store/useAppStore';
 import gsap from 'gsap';
 
 const EquipmentCheck = () => {
-  const { equipment } = useAppStore();
+  const containerRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const containerRef = useRef(null);
+
+  // Static/mock data for equipment
+  const [equipment, setEquipment] = useState([
+    {
+      id: 'EQ001',
+      name: 'Ventilator A',
+      contaminated: true,
+      action: 'Quarantine',
+      lastUsers: [
+        { userName: 'Ramesh Kumar', timestamp: Date.now() - 3600000, status: 'red' },
+        { userName: 'Sunita Devi', timestamp: Date.now() - 7200000, status: 'yellow' },
+      ],
+    },
+    {
+      id: 'EQ002',
+      name: 'ECG Machine',
+      contaminated: false,
+      action: 'Clean',
+      lastUsers: [
+        { userName: 'Dr. Amit', timestamp: Date.now() - 1800000, status: 'green' },
+      ],
+    },
+    {
+      id: 'EQ003',
+      name: 'Infusion Pump',
+      contaminated: true,
+      action: 'Replace',
+      lastUsers: [
+        { userName: 'Nurse Priya', timestamp: Date.now() - 5400000, status: 'red' },
+      ],
+    },
+    {
+      id: 'EQ004',
+      name: 'Ultrasound Machine',
+      contaminated: false,
+      action: 'Safe',
+      lastUsers: [
+        { userName: 'Vikram Patel', timestamp: Date.now() - 900000, status: 'green' },
+      ],
+    },
+  ]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -162,7 +201,7 @@ const EquipmentCheck = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-dark-text mb-3">Last 5 Users</h3>
+              <h3 className="text-lg font-bold text-dark-text mb-3">Last Users</h3>
               <div className="space-y-2">
                 {selectedEquipment.lastUsers.map((user, idx) => (
                   <div

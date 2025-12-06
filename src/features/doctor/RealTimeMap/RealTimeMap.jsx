@@ -11,6 +11,7 @@ const RealTimeMap = () => {
   const [isLive, setIsLive] = useState(false);
   const containerRef = useRef(null);
 
+  // Animate container on mount
   useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(
@@ -19,19 +20,24 @@ const RealTimeMap = () => {
         { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
       );
     }
+  }, []);
 
-    // Subscribe to WebSocket updates
+  // Subscribe to WebSocket updates
+  useEffect(() => {
+    if (!isLive) return;
+
     const unsubscribe = websocketMock.subscribe((data) => {
       setPeople(data.people);
     });
 
+    websocketMock.start(3000); // Poll every 3s
+
     return () => unsubscribe();
-  }, []);
+  }, [isLive]);
 
   const handleStartLive = () => {
     setIsLive(true);
-    websocketMock.start(3000);
-    setPeople(websocketMock.getCurrentState().people);
+    setPeople(websocketMock.getCurrentState()?.people || []);
   };
 
   const handleStopLive = () => {
@@ -49,21 +55,24 @@ const RealTimeMap = () => {
   };
 
   const getRoomCoordinates = (roomId) => {
-    const room = mapConfig.rooms.find((r) => r.id === roomId);
+    const room = mapConfig?.rooms?.find((r) => r.id === roomId);
     return room
       ? {
           x: room.coordinates.x + room.coordinates.width / 2,
           y: room.coordinates.y + room.coordinates.height / 2,
         }
-      : { x: 400, y: 250 };
+      : { x: 400, y: 250 }; // Default position if room not found
   };
 
   return (
     <div ref={containerRef} className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Real-Time Interactive Map</h1>
-          <p className="text-gray-700 mt-1 font-medium">Live tracking of people in hospital / Live tracking dekho</p>
+          <p className="text-gray-700 mt-1 font-medium">
+            Live tracking of people in hospital / Live tracking dekho
+          </p>
         </div>
         <div className="flex gap-3">
           {isLive ? (
@@ -115,8 +124,7 @@ const RealTimeMap = () => {
         <div className="bg-gray-200 p-4">
           <Stage width={800} height={500} className="bg-white rounded-lg border-2 border-gray-300">
             <Layer>
-              {/* Draw Rooms */}
-              {mapConfig.rooms.map((room) => (
+              {mapConfig?.rooms?.map((room) => (
                 <React.Fragment key={room.id}>
                   <Rect
                     x={room.coordinates.x}
@@ -138,10 +146,8 @@ const RealTimeMap = () => {
                 </React.Fragment>
               ))}
 
-              {/* Draw People */}
               {people.map((person) => {
                 const pos = getRoomCoordinates(person.room);
-                // Add slight random offset so people don't overlap
                 const offsetX = (Math.random() - 0.5) * 40;
                 const offsetY = (Math.random() - 0.5) * 40;
 

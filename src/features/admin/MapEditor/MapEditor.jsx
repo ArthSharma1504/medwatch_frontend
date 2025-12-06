@@ -6,7 +6,7 @@ import useAppStore from '../../../store/useAppStore';
 import gsap from 'gsap';
 
 const MapEditor = () => {
-  const { mapConfig, addRoom, updateMapConfig } = useAppStore();
+  const { mapConfig = {}, addRoom, updateMapConfig } = useAppStore();
   const [blueprint, setBlueprint] = useState(null);
   const [rooms, setRooms] = useState(mapConfig.rooms || []);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -29,21 +29,19 @@ const MapEditor = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setBlueprint(event.target.result);
-      };
+      reader.onload = (event) => setBlueprint(event.target.result);
       reader.readAsDataURL(file);
     }
   };
 
   const handleAddRoom = () => {
     const newRoom = {
-      id: `R${rooms.length + 101}`,
-      name: `Room ${rooms.length + 1}`,
+      id: `R${(rooms?.length || 0) + 101}`,
+      name: `Room ${(rooms?.length || 0) + 1}`,
       rfidEnabled: false,
       coordinates: { x: 50, y: 50, width: 100, height: 80 },
     };
-    setRooms([...rooms, newRoom]);
+    setRooms([...(rooms || []), newRoom]);
     addRoom(newRoom);
   };
 
@@ -58,7 +56,7 @@ const MapEditor = () => {
   };
 
   const handleUpdateRoom = (updates) => {
-    const updatedRooms = rooms.map((r) =>
+    const updatedRooms = (rooms || []).map((r) =>
       r.id === selectedRoom.id ? { ...r, ...updates } : r
     );
     setRooms(updatedRooms);
@@ -94,9 +92,7 @@ const MapEditor = () => {
               />
               <label htmlFor="blueprint-upload" className="cursor-pointer">
                 <i className="ri-image-add-line text-5xl text-accent-blue mb-2"></i>
-                <p className="text-sm text-gray-600">
-                  Click to upload floor plan / Blueprint upload karein
-                </p>
+                <p className="text-sm text-gray-600">Click to upload floor plan / Blueprint upload karein</p>
               </label>
             </div>
 
@@ -111,7 +107,7 @@ const MapEditor = () => {
             <div className="bg-light-teal p-4 rounded-lg">
               <h4 className="font-semibold text-dark-text mb-2">Rooms Defined</h4>
               <div className="space-y-2 max-h-64 overflow-auto">
-                {rooms.map((room) => (
+                {(rooms || []).map((room) => (
                   <div
                     key={room.id}
                     onClick={() => handleRoomClick(room)}
@@ -124,9 +120,7 @@ const MapEditor = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         {room.rfidEnabled && (
-                          <span className="text-xs bg-cta-green text-white px-2 py-1 rounded">
-                            RFID
-                          </span>
+                          <span className="text-xs bg-cta-green text-white px-2 py-1 rounded">RFID</span>
                         )}
                         <i className="ri-arrow-right-s-line"></i>
                       </div>
@@ -145,7 +139,7 @@ const MapEditor = () => {
                 <img src={blueprint} alt="Floor Plan" className="absolute inset-0 w-full h-full object-contain" />
                 <Stage width={800} height={500} className="absolute inset-0">
                   <Layer>
-                    {rooms.map((room) => (
+                    {(rooms || []).map((room) => (
                       <React.Fragment key={room.id}>
                         <Rect
                           x={room.coordinates.x}
@@ -189,7 +183,7 @@ const MapEditor = () => {
               <label className="block text-sm font-medium mb-2">Room Name</label>
               <input
                 type="text"
-                defaultValue={selectedRoom.name}
+                value={selectedRoom.name}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-teal"
                 onChange={(e) => setSelectedRoom({ ...selectedRoom, name: e.target.value })}
               />
@@ -199,7 +193,7 @@ const MapEditor = () => {
               <label className="block text-sm font-medium mb-2">Room ID</label>
               <input
                 type="text"
-                defaultValue={selectedRoom.id}
+                value={selectedRoom.id}
                 disabled
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"
               />
@@ -209,9 +203,7 @@ const MapEditor = () => {
               <input
                 type="checkbox"
                 checked={selectedRoom.rfidEnabled}
-                onChange={(e) =>
-                  setSelectedRoom({ ...selectedRoom, rfidEnabled: e.target.checked })
-                }
+                onChange={(e) => setSelectedRoom({ ...selectedRoom, rfidEnabled: e.target.checked })}
                 className="w-5 h-5"
               />
               <label className="font-medium">Enable RFID Tracking</label>

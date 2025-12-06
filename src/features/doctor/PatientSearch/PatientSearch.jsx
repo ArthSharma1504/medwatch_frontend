@@ -7,7 +7,7 @@ import { buildContactNetwork } from '../../../services/tracingEngine';
 import gsap from 'gsap';
 
 const PatientSearch = () => {
-  const { patients, contactData, setContactData } = useAppStore();
+  const { patients = [], contactData = [], setContactData } = useAppStore(); // safe defaults
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -35,30 +35,34 @@ const PatientSearch = () => {
       } else {
         parsedData = await parseExcel(file);
       }
-      setContactData(parsedData);
+      setContactData(parsedData || []); // safe default
       alert(`Successfully imported ${parsedData.length} records! / ${parsedData.length} records import ho gaye!`);
     } catch (error) {
+      console.error('File parse error', error);
       alert('Error parsing file. Please check format.');
     }
   };
 
   const handlePatientClick = (patient) => {
     setSelectedPatient(patient);
-    
-    // Build contact network if data available
-    if (contactData && contactData.length > 0) {
+
+    if (Array.isArray(contactData) && contactData.length > 0) {
       const network = buildContactNetwork(contactData, patient.id);
-      setContacts(network.nodes);
+      setContacts(network.nodes || []); // safe default
+    } else {
+      setContacts([]);
     }
-    
+
     setShowModal(true);
   };
 
-  const filteredPatients = patients.filter(
-    (patient) =>
-      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPatients = Array.isArray(patients)
+    ? patients.filter(
+        (patient) =>
+          patient?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          patient?.id?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -71,6 +75,7 @@ const PatientSearch = () => {
 
   return (
     <div ref={containerRef} className="space-y-6 opacity-100">
+      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Patient Tracing Search</h1>
@@ -104,69 +109,58 @@ const PatientSearch = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-teal text-lg"
           />
-          <button className="bg-primary-teal text-white px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition">
-            <i className="ri-search-line mr-2"></i>
-            Search / Khojo
-          </button>
         </div>
       </Card>
 
-      {/* Patient Results */}
+      {/* Patient Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPatients.map((patient) => {
-          const badge = getStatusBadge(patient.status);
-          return (
-            <Card
-              key={patient.id}
-              className="cursor-pointer hover:shadow-xl transition-all"
-              onClick={() => handlePatientClick(patient)}
-            >
-              <div className="flex items-start gap-4">
-                <img
-                  src={`https://source.unsplash.com/100x100/?portrait,${patient.id}`}
-                  alt={patient.name}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-dark-text">{patient.name}</h3>
-                  <p className="text-sm text-gray-600">ID: {patient.id}</p>
-                  <p className="text-sm text-gray-600">Age: {patient.age}</p>
+        {filteredPatients.length > 0 ? (
+          filteredPatients.map((patient) => {
+            const badge = getStatusBadge(patient.status);
+            return (
+              <Card
+                key={patient.id}
+                className="cursor-pointer hover:shadow-xl transition-all"
+                onClick={() => handlePatientClick(patient)}
+              >
+                <div className="flex items-start gap-4">
+                  <img
+                    src={`https://source.unsplash.com/100x100/?portrait,${patient.id}`}
+                    alt={patient.name}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-dark-text">{patient.name}</h3>
+                    <p className="text-sm text-gray-600">ID: {patient.id}</p>
+                    <p className="text-sm text-gray-600">Age: {patient.age || '-'}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <div className={`${badge.bg} text-white px-3 py-2 rounded-lg flex items-center gap-2`}>
-                  <i className={badge.icon}></i>
-                  <span className="font-semibold">{badge.text}</span>
+                <div className="mt-4 space-y-2">
+                  <div className={`${badge.bg} text-white px-3 py-2 rounded-lg flex items-center gap-2`}>
+                    <i className={badge.icon}></i>
+                    <span className="font-semibold">{badge.text}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Room: {patient.room || '-'}</span>
+                    <span className="text-gray-600">{patient.lastContact ? new Date(patient.lastContact).toLocaleDateString() : '-'}</span>
+                  </div>
                 </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Room: {patient.room}</span>
-                  <span className="text-gray-600">{new Date(patient.lastContact).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+              </Card>
+            );
+          })
+        ) : (
+          <Card>
+            <div className="text-center py-12 text-gray-500">
+              <i className="ri-user-search-line text-6xl mb-4"></i>
+              <p className="text-lg">No patients found matching your search</p>
+              <p className="text-sm">Koi patient nahi mila</p>
+            </div>
+          </Card>
+        )}
       </div>
 
-      {filteredPatients.length === 0 && (
-        <Card>
-          <div className="text-center py-12 text-gray-500">
-            <i className="ri-user-search-line text-6xl mb-4"></i>
-            <p className="text-lg">No patients found matching your search</p>
-            <p className="text-sm">Koi patient nahi mila</p>
-          </div>
-        </Card>
-      )}
-
-      {/* Patient Detail Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Patient Details"
-        size="lg"
-      >
+      {/* Patient Modal */}
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Patient Details" size="lg">
         {selectedPatient && (
           <div className="space-y-6">
             <div className="flex items-start gap-6">
@@ -179,12 +173,8 @@ const PatientSearch = () => {
                 <h2 className="text-2xl font-bold text-dark-text">{selectedPatient.name}</h2>
                 <p className="text-gray-600">Patient ID: {selectedPatient.id}</p>
                 <div className="mt-3 flex gap-3">
-                  <span className="bg-light-teal px-3 py-1 rounded-full text-sm">
-                    Age: {selectedPatient.age}
-                  </span>
-                  <span className="bg-light-teal px-3 py-1 rounded-full text-sm">
-                    Room: {selectedPatient.room}
-                  </span>
+                  <span className="bg-light-teal px-3 py-1 rounded-full text-sm">Age: {selectedPatient.age || '-'}</span>
+                  <span className="bg-light-teal px-3 py-1 rounded-full text-sm">Room: {selectedPatient.room || '-'}</span>
                 </div>
               </div>
             </div>
@@ -192,12 +182,10 @@ const PatientSearch = () => {
             <div className={`${getStatusBadge(selectedPatient.status).bg} text-white p-4 rounded-lg`}>
               <div className="flex items-center gap-2 mb-2">
                 <i className={`${getStatusBadge(selectedPatient.status).icon} text-2xl`}></i>
-                <h3 className="text-lg font-bold">
-                  Status: {selectedPatient.mdrStatus}
-                </h3>
+                <h3 className="text-lg font-bold">Status: {selectedPatient.mdrStatus || '-'}</h3>
               </div>
               <p className="text-sm opacity-90">
-                Last Contact: {new Date(selectedPatient.lastContact).toLocaleString()}
+                Last Contact: {selectedPatient.lastContact ? new Date(selectedPatient.lastContact).toLocaleString() : '-'}
               </p>
             </div>
 
@@ -208,9 +196,9 @@ const PatientSearch = () => {
                   {contacts.map((contact, idx) => (
                     <div key={idx} className="bg-light-teal p-3 rounded-lg flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{contact.name}</p>
+                        <p className="font-medium">{contact.name || '-'}</p>
                         <p className="text-xs text-gray-600">
-                          Level {contact.level} - {contact.type} contact
+                          Level {contact.level || '-'} - {contact.type || '-'} contact
                         </p>
                       </div>
                       <span className="text-accent-blue">

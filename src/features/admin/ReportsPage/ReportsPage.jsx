@@ -1,17 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from '../../../components/Card';
-import useAppStore from '../../../store/useAppStore';
-import { generatePDFReport, generateExcelReport, generateChartData, calculateMetrics } from '../../../services/reportsService';
 import gsap from 'gsap';
 
 const ReportsPage = () => {
-  const { patients, alerts, contactData } = useAppStore();
   const [reportType, setReportType] = useState('compliance');
   const containerRef = useRef(null);
 
-  const metrics = calculateMetrics(patients, contactData || [], alerts);
-  const statusChartData = generateChartData(patients, 'status');
+  // Static metrics for now
+  const metrics = {
+    mdrPositive: 12,
+    directContacts: 34,
+    indirectContacts: 56,
+    alertsTriggered: 7,
+    medianIsolationTime: 18,
+    totalPatients: 45,
+  };
+
+  const statusChartData = [
+    { name: 'Isolated', value: 20, color: '#4AA3C3' },
+    { name: 'Recovered', value: 15, color: '#28B99A' },
+    { name: 'Under Observation', value: 10, color: '#FACC15' },
+  ];
 
   const timelineData = [
     { date: 'Nov 5', cases: 2, contacts: 8 },
@@ -32,36 +42,12 @@ const ReportsPage = () => {
     }
   }, []);
 
-  const handleGeneratePDF = () => {
-    generatePDFReport(metrics, reportType);
-  };
-
-  const handleGenerateExcel = () => {
-    generateExcelReport(patients, 'patients');
-  };
-
   return (
     <div ref={containerRef} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Compliance & Audit Reports</h1>
           <p className="text-gray-700 mt-1 font-medium">Analytics and compliance tracking</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={handleGenerateExcel}
-            className="bg-accent-blue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition flex items-center gap-2"
-          >
-            <i className="ri-file-excel-line"></i>
-            Export Excel / Excel Nikalo
-          </button>
-          <button
-            onClick={handleGeneratePDF}
-            className="bg-cta-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition flex items-center gap-2"
-          >
-            <i className="ri-file-pdf-line"></i>
-            Generate PDF Report / PDF Banao
-          </button>
         </div>
       </div>
 
@@ -120,7 +106,6 @@ const ReportsPage = () => {
                 labelLine={false}
                 label={(entry) => entry.name}
                 outerRadius={100}
-                fill="#8884d8"
                 dataKey="value"
               >
                 {statusChartData.map((entry, index) => (

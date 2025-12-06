@@ -5,7 +5,8 @@ import useAppStore from '../../../store/useAppStore';
 import gsap from 'gsap';
 
 const AlertsConfig = () => {
-  const { alertRules, addAlertRule, updateAlertRule } = useAppStore();
+  // Default alertRules to [] to avoid undefined
+  const { alertRules = [], addAlertRule, updateAlertRule } = useAppStore();
   const [showModal, setShowModal] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
   const containerRef = useRef(null);
@@ -82,15 +83,13 @@ const AlertsConfig = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {alertRules.map((rule) => (
+        {(alertRules || []).map((rule) => (
           <Card key={rule.id} className="relative">
             <div className="absolute top-4 right-4">
               <button
                 onClick={() => handleToggleRule(rule.id, rule.enabled)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold transition ${
-                  rule.enabled
-                    ? 'bg-cta-green text-white'
-                    : 'bg-gray-300 text-gray-600'
+                  rule.enabled ? 'bg-cta-green text-white' : 'bg-gray-300 text-gray-600'
                 }`}
               >
                 {rule.enabled ? 'Enabled' : 'Disabled'}
@@ -111,7 +110,7 @@ const AlertsConfig = () => {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700">Notify Teams:</p>
                 <div className="flex flex-wrap gap-2">
-                  {rule.teams.map((team) => (
+                  {(rule.teams || []).map((team) => (
                     <span
                       key={team}
                       className="bg-accent-blue text-white px-3 py-1 rounded-full text-xs"
@@ -136,7 +135,7 @@ const AlertsConfig = () => {
         ))}
       </div>
 
-      {alertRules.length === 0 && (
+      {(alertRules || []).length === 0 && (
         <Card>
           <div className="text-center py-12 text-gray-500">
             <i className="ri-notification-off-line text-6xl mb-4"></i>
@@ -157,7 +156,7 @@ const AlertsConfig = () => {
             <label className="block text-sm font-medium mb-2">Trigger Event</label>
             <select
               name="trigger"
-              defaultValue={editingRule?.trigger}
+              defaultValue={editingRule?.trigger || ''}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-teal"
             >
@@ -174,12 +173,15 @@ const AlertsConfig = () => {
             <label className="block text-sm font-medium mb-2">Notify Teams</label>
             <div className="space-y-2 max-h-48 overflow-auto border border-gray-300 rounded-lg p-3">
               {teamOptions.map((team) => (
-                <label key={team} className="flex items-center gap-2 cursor-pointer hover:bg-light-teal p-2 rounded">
+                <label
+                  key={team}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-light-teal p-2 rounded"
+                >
                   <input
                     type="checkbox"
                     name="teams"
                     value={team}
-                    defaultChecked={editingRule?.teams.includes(team)}
+                    defaultChecked={(editingRule?.teams || []).includes(team)}
                     className="w-4 h-4"
                   />
                   <span>{team}</span>
